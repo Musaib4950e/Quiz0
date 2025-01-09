@@ -8,31 +8,38 @@ const optionsElement = document.getElementById("options");
 const scoreElement = document.getElementById("score");
 const progressBar = document.getElementById("progress-bar");
 
-// Add event listener to 'Next Question' button
-nextButton.addEventListener("click", nextQuestion);
+// Wait until the page is fully loaded
+document.addEventListener('DOMContentLoaded', () => {
+    // Fetch the questions after page load
+    fetchQuestions();
+});
 
 // Fetch the questions from the API
 function fetchQuestions() {
     fetch("https://opentdb.com/api.php?amount=5&type=multiple")
         .then(response => response.json())
         .then(data => {
-            // Log data to ensure we are getting the correct response from the API
+            // Check the API response and log it for debugging
             console.log("Fetched Questions:", data.results);
             questions = data.results;
+
+            // Start the quiz
             displayQuestion();
         })
         .catch(error => {
             console.error("Error fetching questions:", error);
+            alert("Failed to load quiz questions.");
         });
 }
 
-// Display current question
+// Display the current question
 function displayQuestion() {
     if (questions.length === 0) {
         console.log("No questions available!");
         return;
     }
 
+    // Check if we've reached the end of the questions
     if (currentQuestionIndex < questions.length) {
         const currentQuestion = questions[currentQuestionIndex];
         questionElement.textContent = currentQuestion.question;
@@ -41,8 +48,10 @@ function displayQuestion() {
         const allOptions = [...currentQuestion.incorrect_answers, currentQuestion.correct_answer];
         shuffleArray(allOptions);
 
-        optionsElement.innerHTML = ""; // Clear previous options
+        // Clear previous options
+        optionsElement.innerHTML = "";
 
+        // Add options as buttons
         allOptions.forEach(option => {
             const optionElement = document.createElement("button");
             optionElement.textContent = option;
@@ -51,13 +60,15 @@ function displayQuestion() {
             optionsElement.appendChild(optionElement);
         });
 
+        // Update the progress bar
         updateProgressBar();
     } else {
+        // Show final score if no questions are left
         displayFinalScore();
     }
 }
 
-// Check if selected option is correct
+// Check if the selected answer is correct
 function checkAnswer(selectedOption) {
     const currentQuestion = questions[currentQuestionIndex];
     const correctAnswer = currentQuestion.correct_answer;
@@ -66,38 +77,38 @@ function checkAnswer(selectedOption) {
         score++;
     }
 
-    scoreElement.textContent = score;
+    // Update score display
+    scoreElement.textContent = `Score: ${score}`;
     currentQuestionIndex++;
-    nextButton.disabled = false; // Enable the next button after answering
+
+    // Disable next button to prevent multiple clicks
+    nextButton.disabled = false;
+
+    // Move to the next question
+    nextButton.addEventListener("click", () => {
+        nextButton.disabled = true;  // Disable the button until next question
+        displayQuestion();
+    });
 }
 
-// Go to the next question
-function nextQuestion() {
-    nextButton.disabled = true; // Disable the button to avoid multiple clicks
-    displayQuestion();
-}
-
-// Shuffle the options array
+// Shuffle the options randomly
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+        [array[i], array[j]] = [array[j], array[i]];  // Swap elements
     }
 }
 
-// Update the progress bar based on current question index
+// Update the progress bar
 function updateProgressBar() {
     const progress = (currentQuestionIndex / questions.length) * 100;
     progressBar.style.width = `${progress}%`;
 }
 
-// Display final score
+// Display the final score when the quiz is finished
 function displayFinalScore() {
     questionElement.textContent = "Quiz Finished!";
     optionsElement.innerHTML = "";
-    nextButton.style.display = "none"; // Hide next button
+    nextButton.style.display = "none";  // Hide the next button after the last question
     scoreElement.textContent = `Your final score: ${score} out of ${questions.length}`;
 }
-
-// Start fetching questions when the page loads
-fetchQuestions();
