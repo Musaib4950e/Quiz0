@@ -10,6 +10,7 @@ const progressBar = document.getElementById("progress-bar");
 
 nextButton.addEventListener("click", nextQuestion);
 
+// Fetch the questions from the API
 function fetchQuestions() {
     fetch("https://opentdb.com/api.php?amount=5&type=multiple")
         .then(response => response.json())
@@ -23,6 +24,7 @@ function fetchQuestions() {
 }
 
 function displayQuestion() {
+    // Make sure there are questions available to display
     if (currentQuestionIndex < questions.length) {
         const currentQuestion = questions[currentQuestionIndex];
         questionElement.textContent = currentQuestion.question;
@@ -30,7 +32,9 @@ function displayQuestion() {
         const allOptions = [...currentQuestion.incorrect_answers, currentQuestion.correct_answer];
         shuffleArray(allOptions);
 
+        // Clear previous options
         optionsElement.innerHTML = "";
+
         allOptions.forEach((option, index) => {
             const optionElement = document.createElement("button");
             optionElement.textContent = option;
@@ -53,20 +57,20 @@ function checkAnswer(selectedOption) {
         score++;
     }
 
-    currentQuestionIndex++;
     scoreElement.textContent = score;
-    nextButton.disabled = false;
+    currentQuestionIndex++;
+    nextButton.disabled = false;  // Enable the next button after answering a question
 }
 
 function nextQuestion() {
-    nextButton.disabled = true;
+    nextButton.disabled = true;  // Disable the next button to prevent multiple clicks
     displayQuestion();
 }
 
 function shuffleArray(array) {
     for (let i = array.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+        [array[i], array[j]] = [array[j], array[i]];  // Swap elements
     }
 }
 
@@ -78,8 +82,9 @@ function updateProgressBar() {
 function displayFinalScore() {
     questionElement.textContent = "Quiz Finished!";
     optionsElement.innerHTML = "";
-    nextButton.style.display = "none";
-    scoreElement.textContent = score + " out of " + questions.length;
+    nextButton.style.display = "none";  // Hide the next button
+    scoreElement.textContent = `Your final score: ${score} out of ${questions.length}`;
 }
 
+// Start the quiz by fetching questions
 fetchQuestions();
